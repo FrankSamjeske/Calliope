@@ -47,6 +47,76 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. The dev server proxies `/api` to the backend on `127.0.0.1:8247`.
 
+## Install — Linux quick start (one-command setup)
+
+**Prerequisites**
+
+- Python 3.11+
+- Node.js 18+ (npm)
+- A running ComfyUI install
+- An OpenAI-compatible LLM endpoint
+- ffmpeg on PATH
+
+**Quick setup**
+
+```bash
+# One-command setup: installs backend venv + frontend dependencies
+./setup.sh
+
+# Then start development servers in the foreground:
+./start.sh
+
+# Or install as systemd background services (requires root):
+sudo ./install.sh
+systemctl status calliope-backend
+systemctl status calliope-web
+```
+
+**Configuration**
+
+Environment variables control host/port/API target:
+
+- `CALLIOPE_HOST=127.0.0.1` (backend bind address)
+- `CALLIOPE_PORT=8247` (backend bind port)
+- `CALLIOPE_WEB_HOST=127.0.0.1` (frontend bind address)
+- `CALLIOPE_WEB_PORT=5173` (frontend bind port)
+- `CALLIOPE_API_TARGET=http://127.0.0.1:8247` (frontend proxy target for `/api`)
+
+When using systemd services, edit `/etc/calliope/calliope.env` and restart:
+
+```bash
+sudo systemctl restart calliope-backend calliope-web
+```
+
+**View logs**
+
+```bash
+# Systemd services
+journalctl -u calliope-backend -f
+journalctl -u calliope-web -f
+
+# Local dev servers
+tail -f logs/backend.log
+tail -f logs/web.log
+```
+
+**Manage services**
+
+```bash
+sudo systemctl status calliope-backend calliope-web
+sudo systemctl stop calliope-backend calliope-web
+sudo systemctl start calliope-backend calliope-web
+sudo systemctl restart calliope-backend calliope-web
+sudo systemctl disable calliope-backend calliope-web  # disable auto-start at boot
+```
+
+**Helpers**
+
+- `./setup.sh --force` — reinstall dependencies (backend venv + npm packages)
+- `./start.sh` — start both services in foreground (development)
+- `./stop.sh` — stop local dev servers or systemd services
+- `./status.sh` — show service status and logs hints
+
 ## First run
 
 Open the app, go to **Settings**, and set:

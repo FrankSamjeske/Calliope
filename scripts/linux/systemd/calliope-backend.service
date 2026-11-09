@@ -1,0 +1,30 @@
+[Unit]
+Description=Calliope Backend API Server
+Documentation=https://github.com/benjiyaya/Calliope
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=%S/calliope/calliope-backend
+EnvironmentFile=/etc/calliope/calliope.env
+
+# Use the venv Python interpreter
+ExecStart=%S/calliope/calliope-backend/.venv/bin/python -m calliope.main
+
+# Environment variables passed to the service
+Environment="PYTHONUNBUFFERED=1"
+
+# Service behavior
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits (optional, adjust as needed)
+MemoryMax=2G
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target

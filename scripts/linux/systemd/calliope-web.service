@@ -1,0 +1,30 @@
+[Unit]
+Description=Calliope Frontend Dev Server
+Documentation=https://github.com/benjiyaya/Calliope
+After=network-online.target calliope-backend.service
+Wants=network-online.target calliope-backend.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=%S/calliope/calliope-web
+EnvironmentFile=/etc/calliope/calliope.env
+
+# Run npm dev with environment-driven host/port
+ExecStart=npm run dev
+
+# Environment variables passed to the service
+Environment="PYTHONUNBUFFERED=1"
+
+# Service behavior
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits (optional, adjust as needed)
+MemoryMax=1G
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
