@@ -8,8 +8,8 @@ module.exports = {
 				elevated: '#1e1e24',
 				border: '#2a2a32',
 				muted: '#71717a',
-				accent: '#8b5cf6',
-				'accent-hover': '#7c3aed',
+				accent: '#5cf6b6',
+				'accent-hover': '#3aedde',
 			},
 			borderRadius: {
 				sm: '6px',

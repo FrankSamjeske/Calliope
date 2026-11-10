@@ -40,6 +40,9 @@ ScreenShots/
 docs/*
 !docs/changelogs/
 !docs/changelogs/**
+!docs/architecture/
+!docs/architecture/**
+
 prototype/
 2026-*.md
 !docs/changelogs/*.md
@@ -49,3 +52,4 @@ reference/
 
 # --- Local agent workspace (ZCode) ---
 .zcode/
+.calliope-pids

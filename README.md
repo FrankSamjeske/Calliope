@@ -76,11 +76,11 @@ systemctl status calliope-web
 
 Environment variables control host/port/API target:
 
-- `CALLIOPE_HOST=127.0.0.1` (backend bind address)
-- `CALLIOPE_PORT=8247` (backend bind port)
-- `CALLIOPE_WEB_HOST=127.0.0.1` (frontend bind address)
-- `CALLIOPE_WEB_PORT=5173` (frontend bind port)
-- `CALLIOPE_API_TARGET=http://127.0.0.1:8247` (frontend proxy target for `/api`)
+- `export CALLIOPE_HOST=127.0.0.1` (backend bind address)
+- `export CALLIOPE_PORT=8247` (backend bind port)
+- `export CALLIOPE_WEB_HOST=127.0.0.1` (frontend bind address)
+- `export CALLIOPE_WEB_PORT=5173` (frontend bind port)
+- `export CALLIOPE_API_TARGET=http://127.0.0.1:8247` (frontend proxy target for `/api`)
 
 When using systemd services, edit `/etc/calliope/calliope.env` and restart:
 

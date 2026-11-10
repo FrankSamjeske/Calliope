@@ -1,0 +1,71 @@
+<mxfile host="app.diagrams.net" modified="2026-11-09T00:00:00.000Z" agent="Mozilla/5.0" version="24.7.17">
+  <diagram id="component-relationships" name="Component Relationships">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="root"/>
+        <mxCell id="container" parent="root"/>
+
+        <mxCell id="ui" value="Frontend\nSvelteKit + routes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="80" y="140" width="180" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="api" value="API routers\nprojects, story, jobs, settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="360" y="140" width="220" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="db" value="DB layer\nSQLite schema + migrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="660" y="140" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="agent" value="Agent harness\nplanner, tools, LLM client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="360" y="310" width="220" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="queue" value="Queue manager\nclaim / retry / cancel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="360" y="470" width="220" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="comfy" value="ComfyUI integration\nworkflow registry + patching" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="700" y="470" width="240" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="authoring" value="Authoring + models\nprojects, scenes, clips" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="700" y="310" width="240" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="llm" value="LLM providers" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="90" y="470" width="180" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="ffmpeg" value="ffmpeg export" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="container">
+          <mxGeometry x="1040" y="470" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="HTTP API" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="ui" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="queries + writes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="api" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="project state" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="api" target="agent">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="prompting" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="agent" target="llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="enqueue work" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="api" target="queue">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="run jobs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="queue" target="comfy">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" value="persist artifacts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="comfy" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" value="timeline export" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="comfy" target="ffmpeg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="domain model" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="api" target="authoring">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" value="state + relations" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="container" source="authoring" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
