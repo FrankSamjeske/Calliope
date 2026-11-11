@@ -194,6 +194,13 @@ def _server_root(base_url: str) -> str:
     return b[:-3] if b.endswith("/v1") else b
 
 
+def _server_v1_root(base_url: str) -> str:
+    b = (base_url or "").strip().rstrip("/")
+    if not b:
+        return ""
+    return b if b.endswith("/v1") else f"{b}/v1"
+
+
 def _headers(api_key: str | None) -> dict[str, str]:
     headers = {"Accept": "application/json"}
     if api_key:
@@ -201,7 +208,7 @@ def _headers(api_key: str | None) -> dict[str, str]:
     return headers
 
 
-async def _fetch_server_info(
+async def _fetch_server_info_v1(
     client: httpx.AsyncClient, base_url: str, headers: dict[str, str]
 ) -> dict[str, Any] | None:
     """Best-effort llama.cpp `/props` snapshot (build, router capacity)."""
@@ -220,6 +227,83 @@ async def _fetch_server_info(
     keep = ("role", "build_info", "max_instances", "models_autoload", "model_alias")
     out = {k: data[k] for k in keep if k in data}
     return out or None
+
+
+async def _fetch_server_info_v2(
+    client: httpx.AsyncClient, base_url: str, headers: dict[str, str]
+) -> dict[str, Any] | None:
+    """Best-effort OpenAI-style `/v1` snapshot (build, router capacity)."""
+    root = _server_v1_root(base_url)
+    if not root:
+        return None
+    keep = ("role", "build_info", "max_instances", "models_autoload", "model_alias")
+    for url in (f"{root}/models", root):
+        try:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code >= 400:
+                continue
+            data = resp.json()
+        except (httpx.HTTPError, ValueError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        out = {k: data[k] for k in keep if k in data}
+        if out:
+            return out
+    return None
+
+async def _fetch_server_info(
+    client: httpx.AsyncClient, base_url: str, headers: dict[str, str]
+) -> dict[str, Any] | None:
+    """Best-effort Ollama/OpenAI-kompatibler Server-Snapshot (Ersatz für /props)."""
+    # Entferne evtl. /v1 Suffixe, um die Basis-URL für Ollama-eigene Endpunkte zu haben
+    base_url = base_url.rstrip("/")
+    if base_url.endswith("/v1"):
+        ollama_root = base_url[:-3]
+    else:
+        ollama_root = base_url
+
+    out: dict[str, Any] = {}
+
+    # 1. Schritt: Version abfragen (Äquivalent zu build_info)
+    try:
+        version_resp = await client.get(f"{ollama_root}/api/version", headers=headers, timeout=2.0)
+        if version_resp.status_code == 200:
+            v_data = version_resp.json()
+            if isinstance(v_data, dict) and "version" in v_data:
+                out["build_info"] = {"version": v_data["version"], "source": "ollama"}
+    except (httpx.HTTPError, ValueError):
+        pass  # Wenn es reines OpenAI (nicht Ollama) ist, schlägt dies fehl
+
+    # 2. Schritt: Aktive Modelle abfragen (Ersatz für models_autoload / model_alias)
+    try:
+        # Wir versuchen zuerst den Ollama-Prozess-Endpunkt für aktive Modelle
+        ps_resp = await client.get(f"{ollama_root}/api/ps", headers=headers, timeout=2.0)
+        if ps_resp.status_code == 200:
+            ps_data = ps_resp.json()
+            if isinstance(ps_data, dict) and "models" in ps_data:
+                # Wir mappen die geladenen Modelle als "model_alias" oder aktive Liste
+                out["models_autoload"] = True
+                out["active_models"] = [m.get("name") for m in ps_data["models"] if "name" in m]
+        
+        # Fallback auf Standard OpenAI /v1/models, falls /api/ps nicht erreichbar ist
+        if "active_models" not in out:
+            models_resp = await client.get(f"{base_url}/v1/models", headers=headers, timeout=2.0)
+            if models_resp.status_code == 200:
+                m_data = models_resp.json()
+                if isinstance(m_data, dict) and "data" in m_data:
+                    out["active_models"] = [m.get("id") for m in m_data["data"] if "id" in m]
+
+    except (httpx.HTTPError, ValueError):
+        pass
+
+    # Standard-Eigenschaften simulieren, um Fehler im restlichen Code zu minimieren
+    if out:
+        out["role"] = "server"
+        out["max_instances"] = 1  # Ollama verwaltet Concurrency intern dynamisch
+        return out
+
+    return None
 
 
 async def fetch_models(

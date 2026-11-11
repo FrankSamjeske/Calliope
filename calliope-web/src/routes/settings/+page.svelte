@@ -410,20 +410,25 @@
 		draft.llm_active_id = id;
 	}
 
+	// Add a new LLM profile
 	function addProfile(s: Settings) {
+		//console.log('[settings] addProfile', {s, draft});
 		ensureLlmDraft(s);
-		const id = crypto.randomUUID();
+		const id = makeProfileId();
+		const profiles = draft.llm_profiles as LlmProfile[];
+		const active = profiles.find((p) => p.id === workingActiveId(s));
 		draft.llm_profiles = [
-			...(draft.llm_profiles as LlmProfile[]),
+			...profiles,
 			{
 				id,
-				name: t('settings.newLlmDefault'),
-				base_url: 'http://127.0.0.1:11434/v1',
-				model: '',
+				name: active?.name + ' Copy' || t('settings.newLlmDefault'),
+				base_url: active?.base_url || 'http://127.0.0.1:11434/v1',
+				model: active?.model || '',
 				api_key: false,
 				thinking: 'default',
 			},
 		];
+		
 	}
 
 	function removeProfile(s: Settings, id: string) {
@@ -566,6 +571,14 @@
 			probing = { ...probing, [p.id]: false };
 		}
 	}
+
+	// Generate a unique profile ID for new LLM profiles
+	function makeProfileId(): string {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+        return globalThis.crypto.randomUUID();
+    }
+    return `profile-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 </script>
 
 <svelte:window onbeforeunload={onBeforeUnload} />

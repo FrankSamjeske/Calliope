@@ -29,6 +29,7 @@ __all__ = [
     "extract_json",
     "normalize_thinking",
     "thinking_extra_body",
+    "compact_message_history",
 ]
 
 # Status codes that mean "this server does not do SSE streaming at all" —
@@ -98,6 +99,64 @@ def estimate_prompt_tokens(messages: list[dict[str, Any]]) -> int:
                 else:
                     total_chars += len(str(part.get("text") or ""))
     return int(total_chars / chars_per_token) + image_parts * 1024
+
+
+def compact_message_history(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compacts message history dynamically when approaching a percentage 
+    (e.g., 70%) of the configured context window limit.
+    """
+    logger.info("Start Compacting message history")
+    if not messages:
+        logger.info("No messages to compact.")
+        return messages
+    
+    logger.info("Total messages before compaction: %d", len(messages))
+
+    # Fetch total window tokens from Calliope's settings (defaults safely if unset)
+    window = max(1024, int(settings.context_window_tokens()))
+    logger.info("Context window tokens: %d", window)
+    # Set trigger threshold to 70% of the total context window
+    max_allowed_tokens = int(window * 0.70)
+
+    if estimate_prompt_tokens(messages) <= max_allowed_tokens:
+        return messages
+
+    system_prompt = None
+    working_messages = messages[:]
+
+    # Extract system prompt if present
+    if working_messages and working_messages[0].get("role") == "system":
+        system_prompt = working_messages.pop(0)
+
+    # Tighten recency buffer to last 4 messages to prevent bloat
+    recency_window_size = 4
+    recent_messages = working_messages[-recency_window_size:] if len(working_messages) >= recency_window_size else working_messages
+    older_messages = working_messages[:-recency_window_size] if len(working_messages) >= recency_window_size else []
+
+    summarized_block = {
+        "role": "user",
+        "content": (
+            f"[System Context Note: {len(older_messages)} earlier historical turns and raw logs "
+            f"have been automatically pruned to stay well within the {window}-token limit.]"
+        )
+    }
+
+    compacted = []
+    if system_prompt:
+        compacted.append(system_prompt)
+    compacted.append(summarized_block)
+    compacted.extend(recent_messages)
+
+    # Secondary safety check: if still above the 70% mark, strip down to system prompt + last 2 messages
+    if estimate_prompt_tokens(compacted) > max_allowed_tokens and len(recent_messages) > 2:
+        recent_messages = recent_messages[-2:]
+        compacted = []
+        if system_prompt:
+            compacted.append(system_prompt)
+        compacted.append(summarized_block)
+        compacted.extend(recent_messages)
+
+    return compacted
 
 
 class ContextWindowTooSmall(RuntimeError):
@@ -303,9 +362,9 @@ class LLMClient:
         extra_body: dict[str, Any] | None = None,
         max_tokens: int | None = None,
     ) -> str:
-        outbound = messages
-        if self._text_only and _has_image_parts(messages):
-            outbound = _strip_image_parts(messages)
+        outbound = compact_message_history(messages)
+        if self._text_only and _has_image_parts(outbound):
+            outbound = _strip_image_parts(outbound)
         try:
             return await self._chat_collect(
                 outbound, temperature, response_format, extra_body, max_tokens
@@ -541,10 +600,11 @@ class LLMClient:
         plain blocking call. Endpoints that reject image content parts get one
         text-only retry and are remembered as text-only for the process.
         """
-        if self._text_only or not _has_image_parts(messages):
-            return await self._chat_with_tools_impl(messages, temperature, tools, tool_choice)
+        compacted_messages = compact_message_history(messages)
+        if self._text_only or not _has_image_parts(compacted_messages):
+            return await self._chat_with_tools_impl(compacted_messages, temperature, tools, tool_choice)
         try:
-            return await self._chat_with_tools_impl(messages, temperature, tools, tool_choice)
+            return await self._chat_with_tools_impl(compacted_messages, temperature, tools, tool_choice)
         except httpx.HTTPStatusError as exc:
             body = exc.response.text[:500] if exc.response is not None else ""
             if not _looks_like_image_rejection(exc.response.status_code, body):
@@ -553,7 +613,7 @@ class LLMClient:
             self._text_only = True
             _TEXT_ONLY_ENDPOINTS.add(self.base_url)
             return await self._chat_with_tools_impl(
-                _strip_image_parts(messages), temperature, tools, tool_choice
+                _strip_image_parts(compacted_messages), temperature, tools, tool_choice
             )
 
     async def _chat_with_tools_impl(
@@ -649,9 +709,10 @@ class LLMClient:
         LM-Studio-style fallbacks the blocking path has. A 400 that survives
         both drops surfaces as HTTPStatusError.
         """
+        compacted_messages = compact_message_history(messages)
         payload: dict[str, Any] = {
             "model": self.model,
-            "messages": messages,
+            "messages": compacted_messages,
             "temperature": temperature,
             "stream": True,
         }
@@ -665,7 +726,7 @@ class LLMClient:
         # char trim, so the reply ceiling is what keeps a long agent turn inside
         # the window — measure them, not just the message list.
         ceiling = resolve_max_tokens(
-            _payload_messages_for_estimate(messages, tools), max_tokens
+            _payload_messages_for_estimate(compacted_messages, tools), max_tokens
         )
         if ceiling is not None:
             payload["max_tokens"] = ceiling

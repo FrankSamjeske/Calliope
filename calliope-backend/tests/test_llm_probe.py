@@ -8,6 +8,8 @@ user only sees a slow agent run.
 
 from __future__ import annotations
 
+import asyncio
+
 import httpx
 import pytest
 
@@ -220,6 +222,25 @@ def test_models_urls_resolution(base_url, expected):
 )
 def test_server_root_strips_v1_for_props(base_url, expected):
     assert llm_probe._server_root(base_url) == expected
+
+
+def test_fetch_server_info_v2_uses_v1_endpoints_only(monkeypatch):
+    calls = _stub_get(
+        monkeypatch,
+        {
+            "http://h:1/v1/models": httpx.Response(200, json={"data": [{"id": "m"}]}),
+            "http://h:1/v1": httpx.Response(200, json={"role": "router", "build_info": "b1"}),
+        },
+    )
+
+    async def _run():
+        async with httpx.AsyncClient() as client:
+            return await llm_probe._fetch_server_info_v2(client, "http://h:1", headers={})
+
+    info = asyncio.run(_run())
+    assert info == {"role": "router", "build_info": "b1"}
+    assert calls == ["http://h:1/v1/models", "http://h:1/v1"]
+    assert "http://h:1/props" not in calls
 
 
 # ----------------------------------------------------- profile persistence --
