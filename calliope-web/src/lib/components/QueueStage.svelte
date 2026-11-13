@@ -42,7 +42,7 @@
 	let view = $state<'edit' | 'film'>('edit');
 	/** Selected render unit = a clip id (flattened playback order). */
 	let selectedClipId = $state<number | null>(null);
-	let formValues = $state<Record<string, string | number>>({});
+	let formValues = $state<Record<string, string | number | boolean>>({});
 	// Workflow choice is per CLIP (issue #66): two clips of one scene may use
 	// different workflows (e.g. image→video then video→video extend). Keys are
 	// clip ids; hydrated from clip.workflow_id / saved video_settings.
@@ -50,6 +50,13 @@
 	let selectedRouter = $state<Record<number, string>>({});
 	type RouterClipForm = { images: string[]; prompt: string; duration: number };
 	let routerForms = $state<Record<number, RouterClipForm>>({});
+	const previewInputValues = $derived.by(() => {
+		const values: Record<string, string | number> = {};
+		for (const [key, value] of Object.entries(formValues)) {
+			if (typeof value === 'string' || typeof value === 'number') values[key] = value;
+		}
+		return values;
+	});
 
 	function seedRouterForm(clip: Clip, scene: Scene): RouterClipForm {
 		const images: string[] = [];
@@ -82,7 +89,7 @@
 	let lastFormScene = $state<number | null>(null);
 
 	// Per-scene input cache — switching scenes no longer wipes the form.
-	const formCache = new Map<number, Record<string, string | number>>();
+	const formCache = new Map<number, Record<string, string | number | boolean>>();
 
 	const scenesQuery = createQuery(
 		toStore(() => ({

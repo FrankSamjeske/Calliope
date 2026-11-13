@@ -1053,23 +1053,7 @@
 		font-size: 12px;
 		color: var(--text-secondary);
 	}
-	.chip-toggle {
-		cursor: pointer;
-		font-family: inherit;
-	}
-	.chip-toggle:hover {
-		color: var(--text-primary);
-		border-color: #52525b;
-	}
-	.chip-toggle:disabled {
-		opacity: 0.6;
-		cursor: wait;
-	}
-	.chip-on {
-		color: var(--accent);
-		border-color: var(--accent);
-		background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
-	}
+	
 	.clip-block {
 		margin-top: 10px;
 		border-top: 1px dashed var(--border);

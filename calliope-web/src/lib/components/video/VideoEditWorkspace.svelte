@@ -44,7 +44,7 @@ import { t } from '$lib/i18n.svelte';
 	clipJobs?: Job[];
 		workflow: Workflow | undefined;
 		workflows: Workflow[];
-		formValues: Record<string, string | number>;
+		formValues: Record<string, string | number | boolean>;
 		assetOptions: AssetOption[];
 		allowUpload?: boolean;
 		/** HITL prompt review before Generate: caller resolves + shows the modal. */
@@ -64,7 +64,7 @@ import { t } from '$lib/i18n.svelte';
 	routerPrompt?: string;
 	routerDuration?: number;
 	onRouterForm?: (form: { images: string[]; prompt: string; duration: number }) => void;
-	onFormChange?: (values: Record<string, string | number>) => void;
+	onFormChange?: (values: Record<string, string | number | boolean>) => void;
 	onGenerate: () => void;
 	/** Render-history versioning: apply an older job's output to the clip. */
 	onApplyToClip?: (job: Job, path: string) => void;

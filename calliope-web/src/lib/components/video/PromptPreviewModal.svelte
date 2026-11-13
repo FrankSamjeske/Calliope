@@ -27,7 +27,7 @@
 		scene: Scene | null;
 		workflow?: Workflow | null;
 		/** Extra form values to pass through on confirm. */
-		inputValues?: Record<string, string | number>;
+		inputValues?: Record<string, string | number | boolean>;
 		/** Fallback enqueue path when the modal confirms. */
 		onConfirm: (prompt: string) => void;
 		onclose?: () => void;
