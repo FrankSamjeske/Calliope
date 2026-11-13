@@ -832,10 +832,7 @@
 	.beat-hint {
 		display: block;
 	}
-	.beat-hint strong {
-		color: var(--accent);
-		font-weight: 600;
-	}
+	
 	.prompt-preview {
 		margin: 0 0 var(--space-sm);
 		padding: 12px;

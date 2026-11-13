@@ -185,7 +185,7 @@
 
 	const currentResLabel = $derived(
 		resPair
-			? resolutionLabel(values[resPair.width.input.nodeId], values[resPair.height.input.nodeId])
+			? resolutionLabel(Number(values[resPair.width.input.nodeId]), Number(values[resPair.height.input.nodeId]))
 			: null,
 	);
 
@@ -335,7 +335,7 @@
 				class="prompt-area"
 				placeholder={t('omni.promptPlaceholder')}
 				rows="12"
-				value={values[promptNode.nodeId] ?? ''}
+				value={String(values[promptNode.nodeId] ?? '')}
 				oninput={(e) => setValue(promptNode.nodeId, e.currentTarget.value)}
 				onkeydown={onPromptKeydown}
 				aria-label={t('omni.promptAria')}
@@ -356,7 +356,7 @@
 						class="negative-area"
 						placeholder={t('omni.negativePlaceholder')}
 						rows="2"
-						value={values[negativeNode.nodeId] ?? ''}
+						value={String(values[negativeNode.nodeId] ?? '')}
 						oninput={(e) => setValue(negativeNode.nodeId, e.currentTarget.value)}
 						onkeydown={onPromptKeydown}
 						aria-label={t('omni.negativeAria')}
@@ -425,7 +425,7 @@
 			{@const nodeId = ctrl.input.nodeId}
 			<PillStepper
 				label={t('omni.duration')}
-				value={values[nodeId] ?? ctrl.input.defaultValue ?? 5}
+				value={Number(values[nodeId]) ?? ctrl.input.defaultValue ?? 5}
 				min={1}
 				max={30}
 				step={1}
@@ -439,7 +439,7 @@
 			{@const nodeId = ctrl.input.nodeId}
 			<PillStepper
 				label={t('omni.seed')}
-				value={values[nodeId] ?? ctrl.input.defaultValue ?? 0}
+				value={Number(values[nodeId]) ?? ctrl.input.defaultValue ?? 0}
 				min={0}
 				max={999999999}
 				step={1}

@@ -313,22 +313,7 @@
 		line-height: 1.55;
 		color: var(--text-secondary);
 	}
-	.snippet {
-		margin: 8px 0 4px;
-		padding: 10px 12px;
-		background: var(--bg-elevated);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		font-size: 11.5px;
-		line-height: 1.5;
-		overflow-x: auto;
-		color: var(--text-primary);
-		white-space: pre;
-	}
-	.snippet-note {
-		font-size: 12px;
-		color: var(--text-muted);
-	}
+	
 	.note {
 		margin-top: 10px;
 		font-size: 12px;

@@ -567,12 +567,7 @@
 		max-width: 52ch;
 		line-height: 1.45;
 	}
-	.block-head code {
-		background: var(--bg-elevated);
-		padding: 1px 6px;
-		border-radius: 4px;
-		font-size: 12px;
-	}
+	
 	.stats {
 		display: flex;
 		gap: 8px;
